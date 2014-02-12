@@ -1,0 +1,58 @@
+
+*Note for multiple choice, All that apply, and Matching questions, they will be randomely displayed no matter the format here.
+
+/f Question Format
+/q Question
+/o An Option
+/a An Answer
+/t A Term
+/d A Definition
+/e End of Question
+
+True or False
+
+/f TF
+/q I am perfect
+/a False                   
+/e
+
+or
+
+/f TF /q I am perfect /a False /e
+
+Multiple Choice
+
+/f MULT
+/q How much wood could a woodchuck chuck if a woodchuck could chuck wood?
+/o None
+/o 5 Logs a day
+/a As much wood as a woodchuck could if a woodchuck could chuck wood
+/o 1 Log a day
+/e
+
+Choose all that apply
+
+/f ATA
+/q Which cities below are state capitals? (Choose all that apply)
+/o New York City
+/a Oklahoma City
+/o Las Vegas
+/a Salt Lake City
+/e
+
+Matching
+
+/f MAT
+/q Match the following states with their capitals
+/t Arizona       /d Phoenix 
+/t Massachusetts /d Boston
+/t New Mexico    /d Santa Fe
+/t Rhode Island  /d Providence
+/e
+
+Short Answer
+
+/f SA
+/q Blind men see me. Deaf men hear me. Fools understand me. I am infamous for being completely as I seem. What Am I?
+/a Nothing
+/e
