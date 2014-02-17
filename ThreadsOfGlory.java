@@ -14,32 +14,66 @@ import javafx.geometry.HPos;
 import javafx.scene.control.ListView;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import java.util.ArrayList;
+import java.lang.System;
+import javafx.stage.WindowEvent;
 
 public class ThreadsOfGlory extends Application {
     
+    private static ThreadsOfGlory instance;
+
     private static final int[] COLUMNS = new int[]{3, 3, 25, 3, 11, 11, 41, 3, 0};
     private static final int[] ROWS    = new int[]{3, 7,  6, 5,  3, 62,  3, 8, 3};
     private static final ObservableList<String> RUNNABLES = FXCollections.observableArrayList();
     private static final ObservableList<String> RUNNING   = FXCollections.observableArrayList();
 
-    GridPane mGrid;
-    Scene mScene;
+    private static GridPane mGrid;
+    private static Scene mScene;
+    private static Label textLabel;
+    private static Label runnableLabel;
+    private static Label runningLabel;
+    private static TextField textField;
+    private static ListView<String> runnableList;
+    private static ArrayList<Runnable> runnables;
+    private static ListView<String> runningList;
+    private static Button startButton;
+    private static Button stopButton;
 
-    Label     textLabel;
-    TextField textField;
+    private static boolean isOff = false;
+    private static int runNumber = 2;
 
-    Label    runnableLabel;
-    ListView<String> runnableList;
+    public ThreadsOfGlory()
+    {
+	super();
+	synchronized(ThreadsOfGlory.class)
+	{
+	    if (instance != null)
+	    {
+		throw new UnsupportedOperationException(
+			  getClass() + " is singleton but constructor called more than once");
+	    }
 
-    Label  runningLabel;
-    ListView<String> runningList;
-
-    Button startButton;
-    Button stopButton;
+	    instance = this;
+	}
+    }
 
     public static void main(String[] args)
     {
         launch(args);
+    }
+
+    public static ThreadsOfGlory getInstance()
+    {
+	if (instance == null)
+	{
+	    instance = new ThreadsOfGlory();
+	}
+	return instance;
+    }
+
+    public Scene getScene()
+    {
+	return mScene;
     }
 
     public void start(final Stage primaryStage)
@@ -54,11 +88,25 @@ public class ThreadsOfGlory extends Application {
 	setGrid();
 	addComponents();
 
-	mScene = new Scene(mGrid, 400, 350);
+	mScene = new Scene(mGrid, 420, 350);
 
 	primaryStage.setTitle("Threads of Glory");
         primaryStage.setScene(mScene);
         primaryStage.show();
+
+	setClose();
+    }
+
+    public void setClose()
+    {
+	mScene.getWindow().setOnCloseRequest(new EventHandler<WindowEvent>()
+	{
+	    public void handle(WindowEvent event)
+	    {
+		isOff = true;
+		System.exit(0);
+	    }
+	});
     }
 
     private void setLabels()
@@ -74,12 +122,28 @@ public class ThreadsOfGlory extends Application {
 	textField.setPrefSize(300, 25);
 	textField.setOnAction(new EventHandler<ActionEvent>()
 	{
-	    //textField.setPromptText("");
+	    public void handle(ActionEvent event)
+	    {
+		String runnableName = textField.getText();
+	        textField.setText("");		
+		try
+		{
+		    Class runnable = Class.forName(runnableName);
+		    Runnable item  = (Runnable)runnable.newInstance();
+		    runnables.add(item);
+		    RUNNABLES.add(runnableName);
+		    runnableList.setItems(RUNNABLES);
+	    	}
+		catch (Exception e)
+		{
+		}
+	    }
 	});
     }
 
     private void setRunnableList()
     {
+	runnables = new ArrayList<Runnable>();
 	runnableList = new ListView<String>(RUNNABLES);
 	runnableList.setPrefSize(200, 250);
     }
@@ -95,6 +159,22 @@ public class ThreadsOfGlory extends Application {
 	startButton = new Button();
 	startButton.setPrefSize(100, 40);
 	startButton.setText("Start");
+	startButton.setOnAction(new EventHandler<ActionEvent>()
+	{
+	    public void handle(ActionEvent event)
+	    {
+		try
+		{
+		    int index = runnableList.getSelectionModel().getSelectedIndex();
+		    new Thread(runnables.get(index)).start();
+		    RUNNING.add(RUNNABLES.get(index) + "-" + runNumber);
+		    runNumber += 2;
+		}
+		catch (Exception e)
+		{
+		}
+	    }
+	});
     }
 
     private void setStopButton()
@@ -102,12 +182,28 @@ public class ThreadsOfGlory extends Application {
 	stopButton = new Button();
 	stopButton.setPrefSize(100, 40);
 	stopButton.setText("Stop");
+	stopButton.setOnAction(new EventHandler<ActionEvent>()
+	{
+	    public void handle(ActionEvent event)
+	    {
+		try
+		{
+		    int index = runningList.getSelectionModel().getSelectedIndex();
+		    RUNNING.remove(index);
+		    runNumber -= 2;
+		}
+		catch (Exception e)
+		{
+		}
+	    }
+	});
+
     }
 
     private void setGrid()
     {
 	mGrid = new GridPane();
-	
+ 
 	for (int i = 0; i < 9; i++)
 	{
 	    RowConstraints    row    = new RowConstraints();
@@ -116,9 +212,7 @@ public class ThreadsOfGlory extends Application {
 	    column.setPercentWidth(COLUMNS[i]);
 	    mGrid.getRowConstraints   ().add(row);
 	    mGrid.getColumnConstraints().add(column);
-	}
-
-	
+        }
     }
 
     private void addComponents()
@@ -138,5 +232,22 @@ public class ThreadsOfGlory extends Application {
 	mGrid.add(runningList,   6, 5      );
 	mGrid.add(startButton,   1, 7, 4, 1);
 	mGrid.add(stopButton,    6, 7      );
+    }
+
+    public static boolean isRunning(String runnable)
+    {
+	if ((RUNNING.indexOf(runnable) != -1) && !isOff)
+	{
+	    return true;
+	}
+	else
+	{
+	    return false;
+	}
+    }
+
+    public static int getRunNumber()
+    {
+	return runNumber - 2;
     }
 }
